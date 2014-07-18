@@ -431,8 +431,6 @@ namespace PSMMassParticle
 
 			var filename = "/Application/shaders/MassParticleMove.cgx" ;
 			m_shader = new ShaderProgram( filename );
-			//m_shader = ShaderManager.GetShader( "Kishimen" );
-			//m_shader.SetUniformBinding( 1, "Delta" );
 
 			m_Spr = new SimpleSprite( gc, AppMain.pixel_texture, a_frameBuffer, m_shader );
 			m_Spr.SetTextureVFlip();
@@ -463,8 +461,6 @@ namespace PSMMassParticle
 			{
 				graphics.SetFrameBuffer( out_buf );
 				graphics.SetViewport( 0, 0, out_buf.Width, out_buf.Height );
-				//graphics.SetClearColor( 1f, 1f, 1f, 1f );
-				//graphics.Clear();
 
 				m_Spr.Render();
 			}
