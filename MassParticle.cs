@@ -24,8 +24,6 @@ namespace PSMMassParticle
 		Matrix4 screenMatrix;
 
 		PositionFrameBuffer[] m_positionBuff = new PositionFrameBuffer[2];
-//		FrameBuffer[] m_frameBuffer = new FrameBuffer[2];
-//		Texture2D[] m_PositionTexture = new Texture2D[2];
 		int m_bufIn = 0;
 		int m_bufOut = 1;
 #if DEBUG
@@ -37,13 +35,13 @@ namespace PSMMassParticle
 
 		internal static VertexFormat[] vertexFormatsPos = {
 			VertexFormat.Float,		// Index
-//			VertexFormat.Float4,	// Color
 			VertexFormat.Float2,	// Value
 		};
-//		[StructLayout(LayoutKind.Explicit,Size=48)]
+		[StructLayout(LayoutKind.Explicit,Size=12)]
 		internal struct VertexPos {
+			[FieldOffset(0)]
 			public float Index;
-//			public Vector4 Color;
+			[FieldOffset(4)]
 			public Vector2 Value;
 		}
 
@@ -110,8 +108,6 @@ namespace PSMMassParticle
 			m_shaderParticle.SetUniformValue( 2, (float)DataSize );
 
 			screenMatrix = new Matrix4(
-//				 2.0f/m_graphics.Screen.Rectangle.Width,	0.0f,	0.0f, 0.0f,
-//				 0.0f, -2.0f/m_graphics.Screen.Rectangle.Height,	0.0f, 0.0f,
 				 2.0f/frameBuffer.Rectangle.Width,	0.0f,	0.0f, 0.0f,
 				 0.0f, -2.0f/frameBuffer.Rectangle.Height,	0.0f, 0.0f,
 				 0.0f,	0.0f, 1.0f, 0.0f,
@@ -127,7 +123,7 @@ namespace PSMMassParticle
 			m_bufOut = 1;
 #if DEBUG
 			//for debug
-			m_dbgSpr = new SimpleSprite( m_graphics, m_positionBuff[1].Texture );
+//			m_dbgSpr = new SimpleSprite( m_graphics, m_positionBuff[1].Texture );
 #endif
 			int emitBufferSize = (int)EmitParicleNum * DataSize;
 			m_vertexBufferPos = new VertexBuffer( emitBufferSize, vertexFormatsPos ) ;
@@ -222,65 +218,17 @@ namespace PSMMassParticle
 			m_graphics = null;
 		}
 
-		Vector4 EncodeFloatRGBA( float v )
-		{
-			v = (v + 1024.0f) / 2048.0f;
-
-			Vector4 kEncodeMul = new Vector4(1.0f, 255.0f, 65025.0f, 160581375.0f);
-			float kEncodeBit = 1.0f/255.0f;
-			Vector4 enc = kEncodeMul * v;
-			// enc = frac(enc)
-			enc.X = enc.X - FMath.Truncate(enc.X);
-			enc.Y = enc.Y - FMath.Truncate(enc.Y);
-			enc.Z = enc.Z - FMath.Truncate(enc.Z);
-			enc.W = enc.W - FMath.Truncate(enc.W);
-			enc -= enc.Yzww * kEncodeBit;
-			return enc;
-		}
-
-		Vector2 EncodeFloatRG( float v )
-		{
-			v = (v + 256.0f) / 512.0f;
-
-			Vector2 kEncodeMul = new Vector2(1.0f, 255.0f);
-			float kEncodeBit = 1.0f/255.0f;
-			Vector2 enc = kEncodeMul * v;
-			// enc = frac (enc);
-			enc.X = enc.X - FMath.Truncate(enc.X);
-			enc.Y = enc.Y - FMath.Truncate(enc.Y);
-			enc.X -= enc.Y * kEncodeBit;
-			return enc;
-		}
-
 		public void RenderPosition()
 		{
 			FrameBuffer cfb = m_positionBuff[m_bufIn].FrameBuf;
 
-#if true
 			//this.EmitSplash( new Vector2(480.0f, 272.0f), 512 );
-#else
-			for( int i = 0; i < EmitParicleNum; ++i ){
-				int tmp = i*DataSize;
-				// position x
-//				vertexDataPos[ tmp+0 ].Value = (float)100+i*10;
-				vertexDataPos[ tmp+0 ].Color = EncodeFloatRGBA( (float)0 );
-				// position y
-//				vertexDataPos[ tmp+1 ].Value = (float)i*20;
-				vertexDataPos[ tmp+1 ].Color = EncodeFloatRGBA( (float)0 );
-				// velocity
-				vertexDataPos[ tmp+2 ].Color = new Vector4( EncodeFloatRG(5.0f), EncodeFloatRG(0.2f) );
-				// acceleration
-				vertexDataPos[ tmp+3 ].Color = new Vector4( EncodeFloatRG(-0.1f), EncodeFloatRG(0.05f) );
-			}
-#endif
+
 			if( m_emitOffset > 0 )
 			{
-//				m_vertexBufferPos.SetVertices( vertexDataPos, 0, 0, m_vertexBufferPos.VertexCount );
 				m_vertexBufferPos.SetVertices( vertexDataPos, 0, 0, (int)m_emitOffset );
 
 				Matrix4 posMatrix = new Matrix4(
-//					 2.0f/m_graphics.Screen.Rectangle.Width,	0.0f,	0.0f, 0.0f,
-//					 0.0f, -2.0f/m_graphics.Screen.Rectangle.Height,	0.0f, 0.0f,
 					 2.0f/cfb.Rectangle.Width,	0.0f,	0.0f, 0.0f,
 					 0.0f, -2.0f/cfb.Rectangle.Height,	0.0f, 0.0f,
 					 0.0f,	0.0f, 1.0f, 0.0f,
@@ -292,8 +240,6 @@ namespace PSMMassParticle
 				var prev_vp = m_graphics.GetViewport();
 				m_graphics.SetFrameBuffer( cfb );
 				m_graphics.SetViewport( 0, 0, cfb.Width, cfb.Height );
-//				m_graphics.SetClearColor( 0f, 0f, 0f, 0f );
-//				m_graphics.Clear();
 				m_graphics.SetBlendFunc( BlendFuncMode.Add, BlendFuncFactor.One, BlendFuncFactor.Zero );
 				//FIXME:戻してない	
 
@@ -354,12 +300,6 @@ namespace PSMMassParticle
 			m_emitOffset = 0;
 		}
 
-		public void Render( Matrix4 view_matrix )
-		{
-//			this.RenderPosition( view_matrix );
-//			// Settexture
-//			this.RenderParticle( view_matrix );
-		}
 
 		void set_emit_index()
 		{
@@ -373,27 +313,17 @@ namespace PSMMassParticle
 			const float ar = 0.0f;//-340.0f;
 			for( int i = 0; i < emit_num; ++i ){
 				// position
-//				vertexDataPos[ m_emitOffset+0 ].Color = EncodeFloatRGBA( (float)in_pos.X );
 				vertexDataPos[ m_emitOffset+0 ].Index = (float)m_emitIndex;
 				vertexDataPos[ m_emitOffset+0 ].Value.X = in_pos.X;
-//				vertexDataPos[ m_emitOffset+1 ].Color = EncodeFloatRGBA( (float)in_pos.Y );
 				vertexDataPos[ m_emitOffset+1 ].Index = (float)m_emitIndex+1;
 				vertexDataPos[ m_emitOffset+1 ].Value.X = in_pos.Y;
 				// velocity
 				float rad = AppMain.Random_Int(360) * FMath.DegToRad;
-//				Vector2 tmp;
-//				tmp.X = FMath.Cos( rad )*(float)Rand.Math_random();
-//				tmp.Y = FMath.Sin( rad )*(float)Rand.Math_random();
 				Vector2 tmp = new Vector2( FMath.Cos( rad ), FMath.Sin( rad ) ) * (float)AppMain.Math_random();
-				//Vector2 vv = tmp * vr;
-//				vertexDataPos[ m_emitOffset+2 ].Color = new Vector4( EncodeFloatRG(vv.X), EncodeFloatRG(vv.Y) );
 				vertexDataPos[ m_emitOffset+2 ].Index = (float)m_emitIndex+2;
 				vertexDataPos[ m_emitOffset+2 ].Value = tmp * vr;
 
 				// acceleration
-				//Vector2 av = tmp * ar;
-				//vertexDataPos[ m_emitOffset+3 ].Color = new Vector4( EncodeFloatRG(av.X), EncodeFloatRG(av.Y) );
-				//vertexDataPos[ m_emitOffset+3 ].Color = new Vector4( EncodeFloatRG(0f), EncodeFloatRG(0f) );
 				vertexDataPos[ m_emitOffset+3 ].Index = (float)m_emitIndex+3;
 				vertexDataPos[ m_emitOffset+3 ].Value = tmp * ar;
 

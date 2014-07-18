@@ -40,10 +40,10 @@ void main( float3 in a_PosDir      : POSITION,
            float2 out v_TexCoord   : TEXCOORD0,
            float4 out v_Color      : COLOR0)
 {
-    float s = sin( a_PosDir.z ) ;
-    float c = cos( a_PosDir.z ) ;
-    float2 vx = float2( c, s ) ;
-    float2 vy = float2( -s, c ) ;
+//    float s = sin( a_PosDir.z ) ;
+//    float c = cos( a_PosDir.z ) ;
+//    float2 vx = float2( c, s ) ;
+//    float2 vy = float2( -s, c ) ;
 
 	// index -> uv
 	// position x
@@ -55,9 +55,10 @@ void main( float3 in a_PosDir      : POSITION,
 	//float y = a_Index*16.0;
 
     float2 st = ( a_Point - a_SizeCenter.zw ) * a_SizeCenter.xy;
-	float2 pos = float2(x, y) + vx * st.x + vy * st.y;
+//	float2 pos = float2(x, y) + vx * st.x + vy * st.y;
+	float2 pos = float2(x, y) + float2(1,0) * st.x + float2(0,1) * st.y;
 
     v_Position = mul( float4( pos, 0.0, 1.0 ), WorldViewProj ) ;
-    v_TexCoord = a_UVOffsSize.xy + a_UVOffsSize.zw * a_Point ;
+//    v_TexCoord = a_UVOffsSize.xy + a_UVOffsSize.zw * a_Point ;
     v_Color = a_Color;
 }
