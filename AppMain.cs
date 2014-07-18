@@ -27,6 +27,7 @@ namespace PSMMassParticle
 		}
 
 		static MassParticle m_massParticle;
+		static Vector2 m_emitPos = new Vector2(480.0f, 272.0f);
 
 		public static void Main (string[] args)
 		{
@@ -58,6 +59,15 @@ namespace PSMMassParticle
 		{
 			// Query gamepad for current state
 			var gamePadData = GamePad.GetData (0);
+
+			foreach (var touchData in Touch.GetData(0)) {
+				if (touchData.Status == TouchStatus.Down ||
+					touchData.Status == TouchStatus.Move) {
+
+					m_emitPos.X = ((touchData.X + 0.5f) * SampleDraw.Width);
+					m_emitPos.Y = ((touchData.Y + 0.5f) * SampleDraw.Height);
+				}
+			}
 		}
 
 		public static void Render ()
@@ -71,7 +81,7 @@ namespace PSMMassParticle
 
 			{
 				{
-					m_massParticle.EmitSplash( new Vector2(480.0f, 272.0f), 512 );
+					m_massParticle.EmitSplash( m_emitPos, 512 );
 
 					m_massParticle.RenderPosition();
 				}
@@ -86,7 +96,7 @@ namespace PSMMassParticle
 				}
 			}
 
-			SampleDraw.DrawText( "Sprite Sample 2", 0xffffffff, 0, 0 ) ;
+			SampleDraw.DrawText( "PSM MassParticle", 0xffffffff, 0, 0 ) ;
 			var msg = string.Format( "FrameRate {0:F2} fps / FrameTime {1:F2} ms",
 									 SampleTimer.AverageFrameRate, SampleTimer.AverageFrameTime * 1000 ) ;
 			SampleDraw.DrawText( msg, 0xffffffff, 0, graphics.Screen.Height - 24 ) ;
