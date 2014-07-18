@@ -23,11 +23,16 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -37,13 +42,30 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppMain.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ShaderProgram Include="shaders\Simple.fcg" />
-    <ShaderProgram Include="shaders\Simple.vcg" />
+    <Compile Include="SampleDraw.cs" />
+    <Compile Include="SampleTimer.cs" />
+    <Compile Include="SampleSprite.cs" />
+    <Compile Include="MassParticle.cs" />
+    <Compile Include="SimpleSprite.cs" />
   </ItemGroup>
   <ItemGroup>
     <PsmMetadata Include="app.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Sce\Sce.Psm.CSharp.targets" />
+  <ItemGroup>
+    <EmbeddedShaderProgram Include="shaders\Texture.fcg" />
+    <EmbeddedShaderProgram Include="shaders\Texture.vcg" />
+    <EmbeddedShaderProgram Include="shaders\Simple.fcg" />
+    <EmbeddedShaderProgram Include="shaders\Simple.vcg" />
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderProgram Include="shaders\MassParticle.fcg" />
+    <ShaderProgram Include="shaders\MassParticle.vcg" />
+    <ShaderProgram Include="shaders\MassParticleMove.fcg" />
+    <ShaderProgram Include="shaders\MassParticleMove.vcg" />
+    <ShaderProgram Include="shaders\MassParticlePos.fcg" />
+    <ShaderProgram Include="shaders\MassParticlePos.vcg" />
+    <ShaderProgram Include="shaders\SimpleSprite.fcg" />
+    <ShaderProgram Include="shaders\SimpleSprite.vcg" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,63 @@
+//# -*- coding: utf-8 -*-
+
+/* PlayStation(R)Mobile SDK 2.00.00
+ * Copyright (C) 2014 Sony Computer Entertainment Inc.
+ * All Rights Reserved.
+ */
+// Instanced Rendering
+
+uniform float4x4 WorldViewProj ;
+uniform float Frag = 1.0 / 4.0f;	// tex size
+uniform float DataSize = 8.0f;
+uniform sampler2D Texture1 : TEXUNIT1 ;
+
+
+inline float DecodeFloatRGBA( float4 enc )
+{
+    float4 kDecodeDot = float4(1.0, 1.0/255.0, 1.0/65025.0, 1.0/160581375.0);
+    float v = dot( enc, kDecodeDot );
+	return v * 2048.0f - 1024.0f;	//[-1024.0-1024.0)
+}
+
+inline float2 IndexToTexcoord( float idx )
+{
+	const float sft = Frag * 0.5f;
+	float pu = frac( idx * Frag ) + sft;
+	float pv = floor( idx * Frag ) * Frag + sft;
+	return float2(pu,pv);
+}
+
+
+void main( float3 in a_PosDir      : POSITION,
+           float4 in a_SizeCenter  : TEXCOORD0,
+           float4 in a_UVOffsSize  : TEXCOORD1,
+           float4 in a_Color       : COLOR,
+           float2 in a_Point       : TEXCOORD2,
+
+		   float in a_Index		   : TEXCOORD3,
+
+           float4 out v_Position   : POSITION,
+           float2 out v_TexCoord   : TEXCOORD0,
+           float4 out v_Color      : COLOR0)
+{
+    float s = sin( a_PosDir.z ) ;
+    float c = cos( a_PosDir.z ) ;
+    float2 vx = float2( c, s ) ;
+    float2 vy = float2( -s, c ) ;
+
+	// index -> uv
+	// position x
+	float4 tpcx = tex2D( Texture1, IndexToTexcoord(a_Index*DataSize) );
+	float x = DecodeFloatRGBA( tpcx );
+	// position y
+	float4 tpcy = tex2D( Texture1, IndexToTexcoord(a_Index*DataSize+1) );
+	float y = DecodeFloatRGBA( tpcy );
+	//float y = a_Index*16.0;
+
+    float2 st = ( a_Point - a_SizeCenter.zw ) * a_SizeCenter.xy;
+	float2 pos = float2(x, y) + vx * st.x + vy * st.y;
+
+    v_Position = mul( float4( pos, 0.0, 1.0 ), WorldViewProj ) ;
+    v_TexCoord = a_UVOffsSize.xy + a_UVOffsSize.zw * a_Point ;
+    v_Color = a_Color;
+}

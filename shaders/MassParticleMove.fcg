@@ -1,0 +1,93 @@
+//# -*- coding: utf-8 -*-
+
+/* PlayStation(R)Mobile SDK 2.00.00
+ * Copyright (C) 2014 Sony Computer Entertainment Inc.
+ * All Rights Reserved.
+ */
+
+uniform sampler2D Texture0 : TEXUNIT0 ;
+
+uniform float TexSize = 4.0f;	// tex size
+uniform float DataSize = 8.0f;
+uniform float Delta = 1.0f/30.0f;
+
+
+inline float4 EncodeFloatRGBA( float v )
+{
+	v = (v + 1024.0) / 2048.0;
+
+    float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 160581375.0);
+    float kEncodeBit = 1.0/255.0;
+    float4 enc = kEncodeMul * v;
+    enc = frac(enc);
+    enc -= enc.yzww * kEncodeBit;
+    return enc;
+}
+
+inline float DecodeFloatRGBA( float4 enc )
+{
+    float4 kDecodeDot = float4(1.0, 1/255.0, 1/65025.0, 1/160581375.0);
+    float v = dot( enc, kDecodeDot );
+	return v * 2048.0f - 1024.0f;	//[-1024.0-1024.0)
+}
+
+inline float DecodeFloatRG( float2 enc )
+{
+	float2 kDecodeDot = float2(1.0, 1/255.0);
+	return dot( enc, kDecodeDot ) * 512.0f - 256.0f;	//[-256.0-256.0)
+}
+
+inline float2 DecodeFloatRG2( float4 enc )
+{
+	return float2( DecodeFloatRG(enc.xy), DecodeFloatRG(enc.zw) );
+}
+
+inline float4 EncodeFloatRG2( float2 v )
+{
+	v = (v + 256.0f) / 512.0f;
+
+	float2 kEncodeMul = float2(1.0, 255.0);
+	float kEncodeBit = 1.0/255.0;
+	float2 enc0 = kEncodeMul * v.x;
+	float2 enc1 = kEncodeMul * v.y;
+	float4 enc = float4( enc0, enc1 );
+	enc = frac (enc);
+	enc.x -= enc.y * kEncodeBit;
+	enc.z -= enc.w * kEncodeBit;
+	return enc;
+}
+
+inline int TexcoordToIndex( float2 coord )
+{
+	int x = coord.x * TexSize;
+	int y = coord.y * TexSize;
+	return x + y * TexSize;
+}
+
+
+void main( float2 in v_TexCoord : TEXCOORD0,
+           float4 in v_Color    : COLOR0,
+           float4 out Color     : COLOR )
+{
+	int slot = fmod( TexcoordToIndex( v_TexCoord ), DataSize );
+
+	if( slot == 0 ){
+		// position x
+		float dataA = DecodeFloatRGBA( tex2D( Texture0, v_TexCoord ) );
+		float dataB = DecodeFloatRG( tex2D( Texture0, v_TexCoord + float2(2,0)/TexSize ).xy );
+		Color = EncodeFloatRGBA( dataA + dataB * Delta );
+	} else if( slot == 1){
+		// position y
+		float dataA = DecodeFloatRGBA( tex2D( Texture0, v_TexCoord ) );
+		float dataB = DecodeFloatRG( tex2D( Texture0, v_TexCoord + float2(1,0)/TexSize ).zw );
+		Color = EncodeFloatRGBA( dataA + dataB * Delta );
+	} else if( slot == 2){
+		// velocity
+		float2 dataA = DecodeFloatRG2( tex2D( Texture0, v_TexCoord ) );
+		float2 dataB = DecodeFloatRG2( tex2D( Texture0, v_TexCoord + float2(1,0)/TexSize) );
+		Color = EncodeFloatRG2( dataA + dataB * Delta );
+	} else {
+		Color = tex2D( Texture0, v_TexCoord );
+	}
+}
+

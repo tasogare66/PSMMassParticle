@@ -1,0 +1,64 @@
+//# -*- coding: utf-8 -*-
+
+/* PlayStation(R)Mobile SDK 2.00.00
+ * Copyright (C) 2014 Sony Computer Entertainment Inc.
+ * All Rights Reserved.
+ */
+// Instanced Rendering
+
+uniform float4x4 WorldViewProj ;
+uniform float Frag = 1.0 / 4.0f;	// tex size
+uniform float DataSize = 8.0f;
+
+
+inline float4 EncodeFloatRGBA( float v )
+{
+	v = (v + 1024.0) / 2048.0;
+
+    float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 160581375.0);
+    float kEncodeBit = 1.0/255.0;
+    float4 enc = kEncodeMul * v;
+    enc = frac(enc);
+    enc -= enc.yzww * kEncodeBit;
+    return enc;
+}
+
+inline float4 EncodeFloatRG2( float2 v )
+{
+	v = (v + 256.0f) / 512.0f;
+
+	float2 kEncodeMul = float2(1.0, 255.0);
+	float kEncodeBit = 1.0/255.0;
+	float2 enc0 = kEncodeMul * v.x;
+	float2 enc1 = kEncodeMul * v.y;
+	float4 enc = float4( enc0, enc1 );
+	enc = frac (enc);
+	enc.x -= enc.y * kEncodeBit;
+	enc.z -= enc.w * kEncodeBit;
+	return enc;
+}
+
+
+void main( float in a_Index		: TEXCOORD0,
+//           float4 in a_Color0   : COLOR0,
+		   float2 in a_Value	: TEXCOORD1,
+
+           float4 out v_Position : POSITION,
+           float4 out v_Color0   : COLOR0,
+           float out v_PointSize : PSIZE
+           )
+{
+	const float sft = Frag * 0.5f;
+    float pu = frac( a_Index * Frag ) * 2.0 - 1.0;
+	float pv = floor( a_Index * Frag ) * Frag * 2.0 - 1.0f;
+
+	int slot = fmod( a_Index, DataSize );
+	if( slot == 0 || slot == 1 ){
+		v_Color0 = EncodeFloatRGBA( a_Value.x );
+	} else {
+		v_Color0 = EncodeFloatRG2( a_Value );
+	}
+	v_Position = float4( pu+sft, pv+sft, 0.0, 1.0 );
+//	v_Color0 = a_Color0;
+	v_PointSize = 1.0;
+}
